@@ -79,8 +79,6 @@ impl Lexer {
                 _ => self.position += 1 /*unimplemented!("Unimplemented at position {0}", self.position)*/
             }
         }
-
-        print!("{:?}", tokens);
     }
 
     pub fn current_char(&self) -> char {
