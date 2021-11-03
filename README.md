@@ -1,2 +1,2 @@
-# ruble
-A lexer written in Rust, I mean really theres nothing much to it. Use it if you want
+# Ruble
+A strict programming language written in Rust, using .rbl as a file extension

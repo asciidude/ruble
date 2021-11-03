@@ -1,8 +1,9 @@
 #[derive(Debug)]
 pub enum TokenType {
-    Identifier,
-    Assign,
     VariableDeclaration,
+    Identifier,
+    Comment,
+    Assign,
     String,
     Number
 }

@@ -25,10 +25,11 @@ impl Lexer {
                     tokens.push(tokens::Token::new(tokens::TokenType::Assign, "=".to_owned(), self.position, self.line));
                     self.position += 1;
                 },
-                '\'' | '"' => {
+                '"' => {
                     self.position += 1;
                     let mut buffer: String = String::new();
-                    while self.current_char() != '\'' && self.current_char() != '"' {
+
+                    while self.current_char() != '"' {
                         if self.current_char() == '\\' {
                             self.position += 1;
                         }
@@ -40,19 +41,43 @@ impl Lexer {
                     tokens.push(tokens::Token::new(tokens::TokenType::String, buffer, self.position, self.line));
                     self.position += 1;
                 },
-                '\n' => {
+                ';' => {
+                    let mut buffer: String = String::new();
                     self.position += 1;
-                    self.line += 1;
+
+                    while  {
+                        buffer.push(self.current_char());
+                        self.position += 1;
+                    }
+
+                    tokens.push(tokens::Token::new(tokens::TokenType::Comment, buffer, self.position, self.line));
+                    self.position += 1;
+                },
+                _ if self.current_char().is_whitespace() => {
+                    if self.current_char() == '\r' && self.next_char() == '\n' {
+                        self.position += 1;
+                        self.line += 1;
+                        return;
+                    }
+
+                    self.position += 1;
                 },
                 _ if self.current_char().is_numeric() => {
                     let mut buffer: String = String::new();
 
                     loop {
-                        if self.position >= self.source.len() {
+                        println!("{}", self.source.len());
+                        if self.position >= self.source.len() ||
+                           self.current_char().is_whitespace() {
                             break;
                         }
 
                         if self.current_char() == '_' {
+                            self.position += 1;
+                        }
+
+                        if self.current_char() == '.' {
+                            buffer.push_str(".");
                             self.position += 1;
                         }
 
@@ -76,12 +101,25 @@ impl Lexer {
 
                     tokens.push(tokens::Token::new(t_type, buffer, self.position, self.line));
                 },
-                _ => self.position += 1 /*unimplemented!("Unimplemented at position {0}", self.position)*/
+                _ => unimplemented!("Unimplemented at line {0} position {1}, current character is {2} and next character is {3}",
+                                    self.line, self.position, self.current_char(), self.next_char())
             }
         }
+
+        println!("---+ START: LEXER +----");
+
+        for _token in tokens {
+            println!("{:?}", _token);
+        }
+
+        println!("---+ END:   LEXER +---");
     }
 
     pub fn current_char(&self) -> char {
         *self.source.get(self.position).unwrap()
+    }
+
+    pub fn next_char(&self) -> char {
+        *self.source.get(self.position + 1).unwrap()
     }
 }

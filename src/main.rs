@@ -11,6 +11,10 @@ fn main() {
         panic!("ERR >> Expected a file to be provided in arguments.");
     };
 
+    if !file.ends_with(".rbl") {
+        println!("Unable to open a non-Ruble file");
+    }
+
     let _source = fs::read_to_string(file);
 
     let source = if _source.is_ok() {
