@@ -5,7 +5,10 @@ pub enum TokenType {
     Comment,
     Assign,
     String,
-    Number
+    Number,
+    CodeBlock,
+    FunctionArguments,
+    FunctionIdentifier
 }
 
 #[derive(Debug)]

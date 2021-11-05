@@ -16,7 +16,7 @@ impl Lexer {
         }
     }
 
-    pub fn lex(&mut self) {
+    pub fn lex(&mut self) -> Vec<tokens::Token> {
         let mut tokens: Vec<tokens::Token> = Vec::<tokens::Token>::new();
         
         while self.source.len() > self.position {
@@ -45,7 +45,8 @@ impl Lexer {
                     let mut buffer: String = String::new();
                     self.position += 1;
 
-                    while  {
+                    buffer.push(';');
+                    while self.current_char() != '\r' && self.current_char() != '\n' {
                         buffer.push(self.current_char());
                         self.position += 1;
                     }
@@ -53,11 +54,38 @@ impl Lexer {
                     tokens.push(tokens::Token::new(tokens::TokenType::Comment, buffer, self.position, self.line));
                     self.position += 1;
                 },
+                '{' => {
+                    // (?) Re-lex until it reaches end of buffer
+                    self.position += 1;
+                    let mut buffer: String = String::new();
+
+                    while self.current_char() != '}' {
+                        buffer.push(self.current_char());
+                        self.position += 1;
+                    }
+
+                    tokens.push(tokens::Token::new(tokens::TokenType::CodeBlock, Lexer::new(buffer.to_string()).lex(), self.position, self.line));
+                    self.position += 1;
+                },
+                '(' => {
+                    self.position += 1;
+                    let mut buffer: String = String::new();
+
+                    buffer.push('(');
+                    while self.current_char() != ')' {
+                        buffer.push(self.current_char());
+                        self.position += 1;
+                    }
+                    buffer.push(')');
+                    
+                    tokens.push(tokens::Token::new(tokens::TokenType::FunctionArguments, buffer, self.position, self.line));
+                    self.position += 1;
+                },
                 _ if self.current_char().is_whitespace() => {
                     if self.current_char() == '\r' && self.next_char() == '\n' {
                         self.position += 1;
                         self.line += 1;
-                        return;
+                        break;
                     }
 
                     self.position += 1;
@@ -66,7 +94,6 @@ impl Lexer {
                     let mut buffer: String = String::new();
 
                     loop {
-                        println!("{}", self.source.len());
                         if self.position >= self.source.len() ||
                            self.current_char().is_whitespace() {
                             break;
@@ -95,6 +122,7 @@ impl Lexer {
                     }
 
                     let t_type: tokens::TokenType = match buffer.as_str() {
+                        "fn" => tokens::TokenType::FunctionIdentifier,
                         "let" => tokens::TokenType::VariableDeclaration,
                         _ => tokens::TokenType::Identifier
                     };
@@ -113,6 +141,8 @@ impl Lexer {
         }
 
         println!("---+ END:   LEXER +---");
+
+        tokens
     }
 
     pub fn current_char(&self) -> char {
