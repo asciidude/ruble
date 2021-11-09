@@ -4,21 +4,24 @@ mod tokens;
 pub struct Lexer {
     source: Vec<char>,
     position: usize,
-    line: usize
+    line: usize,
+    debug_name: String
 }
 
 impl Lexer {
-    pub fn new(source: String) -> Self {
+    pub fn new(source: String, debug_name: String) -> Self {
         Self {
             source: source.chars().collect(),
             position: 0,
-            line: 0
+            line: 0,
+            debug_name: debug_name
         }
     }
 
     pub fn lex(&mut self) -> Vec<tokens::Token> {
+        let mut codeblock_index = -1;
         let mut tokens: Vec<tokens::Token> = Vec::<tokens::Token>::new();
-        
+
         while self.source.len() > self.position {
             match self.current_char() {
                 '=' => {
@@ -55,16 +58,21 @@ impl Lexer {
                     self.position += 1;
                 },
                 '{' => {
-                    // (?) Re-lex until it reaches end of buffer
                     self.position += 1;
-                    let mut buffer: String = String::new();
+                    codeblock_index += 1;
+                    let mut block_lex: String = String::new();
+                    let mut buffer: String = String::new(); // (?) Remove later and just use buffer
 
                     while self.current_char() != '}' {
+                        block_lex.push(self.current_char());
                         buffer.push(self.current_char());
                         self.position += 1;
                     }
 
-                    tokens.push(tokens::Token::new(tokens::TokenType::CodeBlock, Lexer::new(buffer.to_string()).lex(), self.position, self.line));
+                    buffer = buffer.replace("   ", "\t");
+
+                    Lexer::new(block_lex, format!("{}{}",String::from("CODEBLOCK "), codeblock_index.to_string())).lex(); // (?) Run in parser
+                    tokens.push(tokens::Token::new(tokens::TokenType::CodeBlock, buffer, self.position, self.line));
                     self.position += 1;
                 },
                 '(' => {
@@ -77,7 +85,7 @@ impl Lexer {
                         self.position += 1;
                     }
                     buffer.push(')');
-                    
+
                     tokens.push(tokens::Token::new(tokens::TokenType::FunctionArguments, buffer, self.position, self.line));
                     self.position += 1;
                 },
@@ -95,7 +103,7 @@ impl Lexer {
 
                     loop {
                         if self.position >= self.source.len() ||
-                           self.current_char().is_whitespace() {
+                            self.current_char().is_whitespace() {
                             break;
                         }
 
@@ -134,13 +142,13 @@ impl Lexer {
             }
         }
 
-        println!("---+ START: LEXER +----");
+        println!("---+ START LEXER: {0} +----", self.debug_name.to_owned());
 
-        for _token in tokens {
+        for _token in &tokens {
             println!("{:?}", _token);
         }
 
-        println!("---+ END:   LEXER +---");
+        println!("---+ END LEXER:   {0} +---", self.debug_name.to_owned());
 
         tokens
     }

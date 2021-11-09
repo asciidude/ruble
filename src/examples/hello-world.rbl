@@ -4,6 +4,11 @@
 
 let foo = 12_36.3
 
+; Create a function named "name", then print "Test" to console
 fn name() {
     print("Test")
+}
+
+fn hello() {
+    print("World")
 }

@@ -23,6 +23,6 @@ fn main() {
         panic!("ERR >> Could not open file, this probably means the path is incorrect. Try again with absolute path.");
     };
 
-    let mut lexer = lexer::Lexer::new(source);
+    let mut lexer = lexer::Lexer::new(source, String::from("MAIN"));
     lexer.lex();
 }
